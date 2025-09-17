@@ -97,7 +97,7 @@ def main():
 
     # ---- File uploader ----
     uploaded_image = st.file_uploader(
-        "Upload an image (optional)", type=["jpg", "jpeg", "png"]
+        "Image Uploader", type=["jpg", "jpeg", "png"]
     )
 
     # ---- Chat input ----
