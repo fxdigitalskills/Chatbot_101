@@ -1,139 +1,59 @@
-# import streamlit as st
-# import google.generativeai as genai
-
-# # Configure Gemini API
-# GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
-# genai.configure(api_key=GOOGLE_API_KEY)
-# model = genai.GenerativeModel('gemini-1.5-flash')
-
-# def initialize_session_state():
-#     if "messages" not in st.session_state:
-#         st.session_state.messages = []
-
-# def get_gemini_response(prompt):
-#     response = model.generate_content(prompt)
-#     return response.text
-
-# def main():
-#     st.title("Gemini AI Chatbot")
-    
-#     initialize_session_state()
-
-#     # Display chat messages
-#     for message in st.session_state.messages:
-#         with st.chat_message(message["role"]):
-#             st.write(message["content"])
-
-#     # Chat input
-#     if prompt := st.chat_input("Chat with Gemini"):
-#         # Display user message
-#         with st.chat_message("user"):
-#             st.write(prompt)
-        
-#         # Add user message to history
-#         st.session_state.messages.append({"role": "user", "content": prompt})
-        
-#         # Get Gemini response
-#         response = get_gemini_response(prompt)
-        
-#         # Display assistant response
-#         with st.chat_message("assistant"):
-#             st.write(response)
-        
-#         # Add assistant response to history
-#         st.session_state.messages.append({"role": "assistant", "content": response})
-
-# if __name__ == "__main__":
-#     main()
-
-
-
 import streamlit as st
 import google.generativeai as genai
 
 # --- Configure Gemini API ---
 GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-
-# ---------- Helpers ----------
+# --- Session state ---
 def initialize_session_state():
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-
-def get_gemini_response(prompt, image_bytes=None, image_type=None):
+# --- Gemini call ---
+def get_roast(user_text, spice_level):
     """
-    Send text + optional image to Gemini.
+    Ask Gemini to roast the user input based on the spice level.
     """
-    parts = [{"text": prompt}]
-    if image_bytes:
-        parts.append({
-            "inline_data": {
-                "mime_type": image_type or "image/jpeg",
-                "data": image_bytes,
-            }
-        })
-    response = model.generate_content(parts)
-    return response.text
+    prompt = f"""
+    You are RoastBot, a witty comedian.
+    Roast the following message in a fun, lighthearted way.
+    Spice level: {spice_level}/10 (1 = super mild, 10 = savage but still friendly).
+    User message: "{user_text}"
+    """
+    response = model.generate_content(prompt)
+    return response.text.strip()
 
-
-# ---------- Main App ----------
+# --- App main ---
 def main():
-    st.title("Gemini AI Chatbot with Image Memory")
+    st.title("🔥 RoastBot")
+    st.caption("Type anything and get roasted! Adjust the spice slider for mild → savage burns.")
+    
     initialize_session_state()
 
-    # ---- Display history ----
+    # Spice slider (1–10)
+    spice = st.slider("Spice level", 1, 10, 5)
+
+    # Display previous messages
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.write(message["content"])
-            if message.get("image"):
-                st.image(
-                    message["image"],
-                    caption="Uploaded Image",
-                    use_container_width=True,
-                )
 
-    # ---- File uploader ----
-    uploaded_image = st.file_uploader(
-        "Image Uploader", type=["jpg", "jpeg", "png"]
-    )
-
-    # ---- Chat input ----
-    if prompt := st.chat_input("Chat with Gemini"):
-        image_bytes = uploaded_image.read() if uploaded_image else None
-        image_type = uploaded_image.type if uploaded_image else None
-
+    # Chat input
+    if prompt := st.chat_input("Say something to RoastBot"):
         # Show user message
         with st.chat_message("user"):
             st.write(prompt)
-            if image_bytes:
-                st.image(
-                    image_bytes,
-                    caption="Uploaded Image",
-                    use_container_width=True,
-                )
+        st.session_state.messages.append({"role": "user", "content": prompt})
 
-        # Save user message to history
-        st.session_state.messages.append(
-            {"role": "user", "content": prompt, "image": image_bytes}
-        )
+        # Get roast
+        roast = get_roast(prompt, spice)
 
-        # Get Gemini response
-        response_text = get_gemini_response(prompt, image_bytes, image_type)
-
-        # Show assistant message
+        # Show roast
         with st.chat_message("assistant"):
-            st.write(response_text)
+            st.write(roast)
+        st.session_state.messages.append({"role": "assistant", "content": roast})
 
-        # Save assistant message to history
-        st.session_state.messages.append(
-            {"role": "assistant", "content": response_text}
-        )
-
-
-# ---------- Run ----------
 if __name__ == "__main__":
     main()
-
