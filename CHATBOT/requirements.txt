@@ -1,7 +1,7 @@
 streamlit
 google-generativeai
 pandas
-matplotlib.pyplot
+matplotlib
 time
 os
 datetime
