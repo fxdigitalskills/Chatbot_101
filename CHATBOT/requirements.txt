@@ -1,7 +1,6 @@
-streamlit
-google-generativeai
-pandas
-matplotlib
-time
-os
-datetime
+streamlit==1.50.0
+google-generativeai==0.8.5
+pandas==2.3.2
+matplotlib==3.10.0
+numpy==2.1.2
+pillow==10.4.0
